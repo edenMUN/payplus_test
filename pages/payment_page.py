@@ -9,16 +9,24 @@ from selenium.webdriver.support import expected_conditions as EC
 from locators.locators import PaymentPageLocators
 from pages.base_page import BasePage
 
+# Inputs fail fast. Page load, submit, and the approval screen get a longer wait.
+FIELD_TIMEOUT = 10
+FLOW_TIMEOUT = 40
+
 
 class PaymentPage(BasePage):
     """Hosted PayPlus payment page at paymentsdev.payplus.co.il."""
 
-    def __init__(self, driver: WebDriver, timeout: int = 40) -> None:
+    def __init__(self, driver: WebDriver, timeout: int = FIELD_TIMEOUT) -> None:
         super().__init__(driver, timeout)
 
     @allure.step("Open payment link: {url}")
     def open_payment_link(self, url: str) -> None:
         self.open(url)
+        self._until(
+            EC.visibility_of_element_located(PaymentPageLocators.CARD_HOLDER_NAME),
+            FLOW_TIMEOUT,
+        )
 
     @allure.step("Fill the payment form and submit it")
     def pay(
@@ -41,13 +49,14 @@ class PaymentPage(BasePage):
 
     @allure.step("Submit the payment")
     def submit_payment(self) -> None:
-        self.click(PaymentPageLocators.SUBMIT)
+        self.click(PaymentPageLocators.SUBMIT, timeout=FLOW_TIMEOUT)
 
     @allure.step("Wait until the payment success message is displayed")
     def wait_for_success_message(self) -> str:
-        self.wait.until(EC.url_contains("/approve/"))
-        heading = self.wait.until(
-            EC.visibility_of_element_located(PaymentPageLocators.SUCCESS_MESSAGE)
+        self._until(EC.url_contains("/approve/"), FLOW_TIMEOUT)
+        heading = self._until(
+            EC.visibility_of_element_located(PaymentPageLocators.SUCCESS_MESSAGE),
+            FLOW_TIMEOUT,
         )
         return heading.text.strip()
 

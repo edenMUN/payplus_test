@@ -47,6 +47,13 @@ Run tests in headed mode (visible browser):
 poetry run pytest --headed
 ```
 
+Choose the environment file. `dev` (the default) reads `.env`. Any other name reads `.env.<name>` from the project root:
+
+```bash
+poetry run pytest --env dev
+poetry run pytest --env qa
+```
+
 Run a specific test file:
 
 ```bash
@@ -67,7 +74,7 @@ poetry run pytest -m ui
 poetry run pytest -m e2e
 ```
 
-Run tests in parallel (using pytest-xdist):
+Run tests in parallel. API tests spread across workers. UI and end-to-end tests share one worker, so only one Chrome runs at a time:
 
 ```bash
 poetry run pytest -n auto
@@ -79,7 +86,7 @@ Generate and serve the Allure report locally:
 allure serve allure-results
 ```
 
-A full local run already serves that report when the Allure CLI is installed. UI failures attach a screenshot.
+A full local run already serves that report when the Allure CLI is installed. A UI failure during setup or the test itself attaches the URL, the page source, and a screenshot.
 
 The amount `0` API test asserts `results.status` is `error`. On this sandbox the call still returns a success link, so that test fails.
 
@@ -113,8 +120,8 @@ End to end (`tests/test_e2e.py`):
 - Missing `payment_page_uid` is HTTP 405 with a plain-text body, not the JSON `results` object used by other failures. `is_api_error` treats both shapes as errors.
 - The approval screen is `https://paymentsdev.payplus.co.il/approve/{page_request_uid}`. Its heading is `העסקה בוצעה בהצלחה`. The route `/thanks/:uid` exists in the payment app but is not where this page lands. `language_code: "he"` is sent because this payment page stayed Hebrew when `"en"` was requested.
 - The success URL carries `transaction_uid`. Generate Link only returns `page_request_uid`, which is not the charge id, so the end-to-end test reads `transaction_uid` from the approval URL and also sends a unique `more_info` (15 characters, under PayPlus' 19 character limit) so View can find the same row if the query string is ever absent.
-- View can lag behind the approval page by a moment, so the client is polled for up to 20 seconds. UI synchronization uses explicit waits only.
+- View can lag behind the approval page by a moment, so the client is polled for up to 20 seconds. UI synchronization uses explicit waits only. Card fields wait 10 seconds. Opening the page, submitting, and the approval screen wait 40 seconds.
 - `charge_method` is `1` (immediate charge). `sendEmailApproval` and `sendEmailFailure` are `false`. `secure3d.activate` is `false` so the sandbox card is not sent into a challenge. `hide_identification_id` is `true` so the form does not ask for an Israeli id.
 - One payment installment is selected so the full amount is charged. The card is the sandbox success card from the PayPlus docs: number `5326-1402-8077-9844`, expiry `05/30`, CVV `000`.
 - Credentials and the payment page uid stay in `.env`. Payloads, the sandbox card, and expected messages stay in `data/test_data.py`.
-- Browsers are headless unless `--headed` is passed. ChromeDriver is installed by webdriver-manager. Each test gets its own browser. The API client is session-scoped and uses one `requests.Session`.
+- Browsers are headless unless `--headed` is passed. Selenium Manager installs ChromeDriver. Each test gets its own browser. The API client is session-scoped and uses one `requests.Session`. `--env` selects the env file before that client is created. With `pytest -n`, UI and end-to-end tests stay on one worker.

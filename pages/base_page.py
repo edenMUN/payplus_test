@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import allure
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
@@ -29,8 +31,8 @@ class BasePage:
         self.driver.get(url)
 
     @allure.step("Click element: {locator}")
-    def click(self, locator: tuple[str, str]) -> None:
-        element = self.wait.until(EC.element_to_be_clickable(locator))
+    def click(self, locator: tuple[str, str], *, timeout: int | None = None) -> None:
+        element = self._until(EC.element_to_be_clickable(locator), timeout)
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center'});",
             element,
@@ -59,6 +61,10 @@ class BasePage:
     @allure.step("Read the current URL")
     def current_url(self) -> str:
         return self.driver.current_url
+
+    def _until(self, condition: Any, timeout: int | None = None) -> Any:
+        wait = self.wait if timeout is None else WebDriverWait(self.driver, timeout)
+        return wait.until(condition)
 
     def _dispatch_input(self, element: WebElement) -> None:
         self.driver.execute_script(

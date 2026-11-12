@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from enum import Enum, IntEnum
 from typing import Any
 
 
-class Currency:
+class Currency(str, Enum):
     ILS = "ILS"
 
 
-class ChargeMethod:
+class ChargeMethod(IntEnum):
     """PayPlus charge_method values. 1 charges the card immediately (J4)."""
 
     CHARGE = 1
@@ -36,7 +37,7 @@ class SandboxCard:
     PAYMENTS = "1"
 
 
-class ApiStatus:
+class ApiStatus(str, Enum):
     SUCCESS = "success"
     ERROR = "error"
     APPROVED = "000"

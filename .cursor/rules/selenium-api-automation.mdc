@@ -1,0 +1,15 @@
+---
+description: Selenium, Pytest, and PayPlus API automation conventions
+alwaysApply: true
+---
+
+# Selenium / API automation
+
+- Python 3.10+, Pytest, Selenium explicit waits, Requests, Allure, configuration in `pyproject.toml`.
+- Locators live only in `locators/`. Page objects inherit `BasePage`, import locators, and contain the user flow. Do not put raw locator tuples in page classes.
+- API calls go through `BaseApiClient` (`requests.Session`) and `PayPlusClient`.
+- Never use `time.sleep()` for UI synchronization. Use `WebDriverWait` and expected conditions.
+- Do not decorate `__init__` with Allure. Decorate every page-object action with `@allure.step`. Use `{parameter}` placeholders that match the argument name when the value belongs in the report. Do not interpolate passwords, CVV, or other secrets. `type_text` names the locator, not `{text}`.
+- Locator order: `data-testid` / `data-qa` / `data-cy`, then id, then CSS, then XPath only for text or parent traversal.
+- Confirm locators against the rendered page before changing them. Do not guess.
+- Keep expected messages, card data, and request payloads in `data/test_data.py`. Keep credentials in `.env`.

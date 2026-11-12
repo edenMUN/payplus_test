@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "payplus-automation"
+version = "1.0.0"
+description = "Selenium UI and REST API automation for the PayPlus sandbox payment flow"
+authors = ["Automation Engineer"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+selenium = ">=4.18.0"
+requests = ">=2.31.0"
+pytest = ">=8.0.0"
+pytest-xdist = ">=3.5.0"
+allure-pytest = ">=2.13.5"
+python-dotenv = ">=1.0.0"
+webdriver-manager = ">=4.0.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+pythonpath = "."
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --alluredir=allure-results"
+markers = [
+    "ui: UI tests using Selenium",
+    "api: REST API tests using requests",
+    "e2e: end-to-end tests that combine the API and Selenium",
+    "smoke: critical happy path checks",
+]
